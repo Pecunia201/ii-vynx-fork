@@ -364,25 +364,37 @@ Variants {
                     onTriggered: mediaLoader.enableLoading = true
                 }
 
-                FadeLoader {
-                    id: mediaLoader
-                    property bool enableLoading: true
-                    shown: Config.options.background.widgets.media.enable && enableLoading
-                    sourceComponent: MediaWidget {
+                Component {
+                    id: circularMediaComponent
+                    MediaWidget {
+                        screenWidth: bgRoot.screen.width
+                        screenHeight: bgRoot.screen.height
+                        scaledScreenWidth: bgRoot.screen.width / bgRoot.effectiveWallpaperScale
+                        scaledScreenHeight: bgRoot.screen.height / bgRoot.effectiveWallpaperScale
+                        wallpaperScale: bgRoot.effectiveWallpaperScale
+                        onRequestReset: {
+                            mediaLoader.enableLoading = false
+                            mediaTimer.running = true
+                        }
+                    }
+                }
+
+                Component {
+                    id: expressiveMediaComponent
+                    ExpressiveMediaWidget {
                         screenWidth: bgRoot.screen.width
                         screenHeight: bgRoot.screen.height
                         scaledScreenWidth: bgRoot.screen.width / bgRoot.effectiveWallpaperScale
                         scaledScreenHeight: bgRoot.screen.height / bgRoot.effectiveWallpaperScale
                         wallpaperScale: bgRoot.effectiveWallpaperScale
                     }
-                    onLoaded: {
-                        if (item && item.requestReset) {
-                            item.requestReset.connect(() => { // hard reset
-                                mediaLoader.enableLoading = false
-                                mediaTimer.running = true
-                            })
-                        }
-                    }
+                }
+
+                FadeLoader {
+                    id: mediaLoader
+                    property bool enableLoading: true
+                    shown: Config.options.background.widgets.media.enable && enableLoading
+                    sourceComponent: Config.options.background.widgets.media.style === "expressive" ? expressiveMediaComponent : circularMediaComponent
                 }
             }
         }

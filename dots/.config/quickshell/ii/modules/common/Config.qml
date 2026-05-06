@@ -250,6 +250,7 @@ Singleton {
                     }
                     property JsonObject media: JsonObject {
                         property bool enable: true
+                        property string style: "circular" // circular, expressive
                         property string placementStrategy: "free" // "free", "leastBusy", "mostBusy"
                         property real x: 800
                         property real y: 100
@@ -330,6 +331,7 @@ Singleton {
                 property bool vertical: false
 
                 property JsonObject mediaPlayer: JsonObject {
+                    property bool expressivePopup: true
                     property bool useFixedSize: false
                     property int customSize: 250
                     property int maxSize: 400

@@ -308,6 +308,15 @@ ContentPage {
             }
         }
 
+        ConfigSwitch {
+            buttonIcon: "fluid_med"
+            text: Translation.tr("Expressive media popup")
+            checked: Config.options.bar.mediaPlayer.expressivePopup
+            onCheckedChanged: {
+                Config.options.bar.mediaPlayer.expressivePopup = checked;
+            }
+        }
+
         ContentSubsection {
             title: Translation.tr("Artwork")
 

@@ -92,7 +92,9 @@ Item {
     }
 
     MouseArea {
+        id: mediaMouseArea
         anchors.fill: parent
+        hoverEnabled: true
         acceptedButtons: Qt.MiddleButton | Qt.BackButton | Qt.ForwardButton | Qt.RightButton | Qt.LeftButton
         cursorShape: Qt.PointingHandCursor
         onPressed: (event) => {
