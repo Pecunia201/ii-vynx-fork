@@ -52,22 +52,36 @@ Item {
             "sports": [sportsComp, sportsComp, sportsCompExpressive, sportsCompExpressive],
             "power": [powerComp, powerComp, powerCompExpressive, powerCompExpressive]
         })
-    
+
     readonly property bool isExpressive: {
-        if (modelData.id === "clock" && Config.options.bar.styles.clock === "expressive") return true;
-        if (modelData.id === "music_player" && Config.options.bar.styles.media === "expressive") return true;
-        if (modelData.id === "workspaces" && Config.options.bar.styles.workspaces === "expressive") return true;
-        if (modelData.id === "utility_buttons" && Config.options.bar.styles.utilButtons === "expressive") return true;
-        if (modelData.id === "weather" && Config.options.bar.styles.weather === "expressive") return true;
-        if (modelData.id === "dashboard_panel_button" && Config.options.bar.styles.dashboard === "expressive") return true;
-        if (modelData.id === "system_monitor" && Config.options.bar.styles.resources === "expressive") return true;
-        if (modelData.id === "policies_panel_button" && Config.options.bar.styles.policies === "expressive") return true;
-        if (modelData.id === "power" && Config.options.bar.styles.power === "expressive") return true;
-        if (modelData.id === "battery" && Config.options.bar.styles.battery === "expressive") return true;
-        if (modelData.id === "system_tray" && Config.options.bar.styles.systray === "expressive") return true;
-        if (modelData.id === "bluetooth_devices" && Config.options.bar.styles.bluetooth === "expressive") return true;
-        if (modelData.id === "keyboard_layout" && Config.options.bar.styles.keyboard === "expressive") return true;
-        if (modelData.id === "sports" && Config.options.bar.styles.sports === "expressive") return true;
+        if (modelData.id === "clock" && Config.options.bar.styles.clock === "expressive")
+            return true;
+        if (modelData.id === "music_player" && Config.options.bar.styles.media === "expressive")
+            return true;
+        if (modelData.id === "workspaces" && Config.options.bar.styles.workspaces === "expressive")
+            return true;
+        if (modelData.id === "utility_buttons" && Config.options.bar.styles.utilButtons === "expressive")
+            return true;
+        if (modelData.id === "weather" && Config.options.bar.styles.weather === "expressive")
+            return true;
+        if (modelData.id === "dashboard_panel_button" && Config.options.bar.styles.dashboard === "expressive")
+            return true;
+        if (modelData.id === "system_monitor" && Config.options.bar.styles.resources === "expressive")
+            return true;
+        if (modelData.id === "policies_panel_button" && Config.options.bar.styles.policies === "expressive")
+            return true;
+        if (modelData.id === "power" && Config.options.bar.styles.power === "expressive")
+            return true;
+        if (modelData.id === "battery" && Config.options.bar.styles.battery === "expressive")
+            return true;
+        if (modelData.id === "system_tray" && Config.options.bar.styles.systray === "expressive")
+            return true;
+        if (modelData.id === "bluetooth_devices" && Config.options.bar.styles.bluetooth === "expressive")
+            return true;
+        if (modelData.id === "keyboard_layout" && Config.options.bar.styles.keyboard === "expressive")
+            return true;
+        if (modelData.id === "sports" && Config.options.bar.styles.sports === "expressive")
+            return true;
         return false;
     }
 

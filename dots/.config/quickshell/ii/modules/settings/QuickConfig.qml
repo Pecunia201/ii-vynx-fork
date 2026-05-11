@@ -304,6 +304,11 @@ ContentPage {
                             displayName: Translation.tr("Rect"),
                             icon: "toolbar",
                             value: 2
+                        },
+                        {
+                            displayName: Translation.tr("Dynamic Island"),
+                            icon: "water_drop",
+                            value: 3
                         }
                     ]
                 }
@@ -499,12 +504,16 @@ ContentPage {
 
     Connections {
         target: Config.options.appearance.palette
-        function onTypeChanged() { page.showRestartFab = true }
+        function onTypeChanged() {
+            page.showRestartFab = true;
+        }
     }
 
     Connections {
         target: Appearance.m3colors
-        function onDarkmodeChanged() { page.showRestartFab = true }
+        function onDarkmodeChanged() {
+            page.showRestartFab = true;
+        }
     }
 
     property bool showRestartFab: false
