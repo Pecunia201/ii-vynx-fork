@@ -3,8 +3,8 @@
 A premium Material 3 / Material You dotfiles for Hyprland, powered by Quickshell.
 
 # System Preview
-<img width="4192" height="3060" alt="Frame 322(2)" src="https://github.com/user-attachments/assets/85beaa1c-5f19-4c4b-a0f5-2804ad0dd0e8" />
 
+<img width="1947" height="3231" alt="Frame 145" src="https://github.com/user-attachments/assets/61327556-d985-44b2-b31b-2dad51849984" />
 
 ## Overview
 
