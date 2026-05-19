@@ -18,6 +18,7 @@ import qs.modules.ii.sidebarDashboard.nightLight
 import qs.modules.ii.sidebarDashboard.volumeMixer
 import qs.modules.ii.sidebarDashboard.wifiNetworks
 import qs.modules.ii.sidebarDashboard.darkMode
+import qs.modules.ii.sidebarDashboard.localSend
 
 Item {
     id: root
@@ -30,6 +31,7 @@ Item {
     property bool showNightLightDialog: false
     property bool showWifiDialog: false
     property bool showDarkModeDialog: false
+    property bool showLocalSendDialog: false
     property bool editMode: false
 
     Connections {
@@ -41,6 +43,7 @@ Item {
                 root.showAudioOutputDialog = false;
                 root.showAudioInputDialog = false;
                 root.showDarkModeDialog = false;
+                root.showLocalSendDialog = false;
             }
         }
     }
@@ -166,6 +169,11 @@ Item {
         dialog: DarkModeDialog {}
     }
 
+    ToggleDialog {
+        shownPropertyString: "showLocalSendDialog"
+        dialog: LocalSendDialog {}
+    }
+
     component ToggleDialog: Loader {
         id: toggleDialogLoader
         required property string shownPropertyString
@@ -221,6 +229,9 @@ Item {
             }
             function onOpenDarkModeDialog() {
                 root.showDarkModeDialog = true;
+            }
+            function onOpenLocalSendDialog() {
+                root.showLocalSendDialog = true;
             }
         }
     }

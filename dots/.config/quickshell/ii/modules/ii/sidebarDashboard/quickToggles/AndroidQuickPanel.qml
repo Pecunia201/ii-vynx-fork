@@ -26,7 +26,7 @@ AbstractQuickPanel {
     readonly property real baseCellHeight: 56
 
     // Toggles config
-    readonly property list<string> availableToggleTypes: ["network", "bluetooth", "idleInhibitor", "easyEffects", "nightLight", "darkMode", "cloudflareWarp", "gameMode", "screenSnip", "colorPicker", "onScreenKeyboard", "mic", "audio", "notifications", "powerProfile", "musicRecognition", "antiFlashbang", "soundcoreAnc"]
+    readonly property list<string> availableToggleTypes: ["network", "bluetooth", "idleInhibitor", "easyEffects", "nightLight", "darkMode", "cloudflareWarp", "gameMode", "screenSnip", "colorPicker", "onScreenKeyboard", "mic", "audio", "notifications", "powerProfile", "musicRecognition", "antiFlashbang", "soundcoreAnc", "localSend"]
     readonly property int columns: Config.options.sidebar.quickToggles.android.columns
 
     // Pages data — reads from Config.
@@ -305,6 +305,7 @@ AbstractQuickPanel {
                                                 onOpenNightLightDialog: root.openNightLightDialog()
                                                 onOpenWifiDialog: root.openWifiDialog()
                                                 onOpenDarkModeDialog: root.openDarkModeDialog()
+                                                onOpenLocalSendDialog: root.openLocalSendDialog()
                                             }
                                         }
                                     }

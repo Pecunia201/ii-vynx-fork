@@ -91,7 +91,7 @@ Scope {
             color: "transparent"
             WlrLayershell.namespace: "quickshell:mediaControls"
             
-            readonly property var rect: Persistent.states.media.popupRect
+            readonly property var rect: GlobalStates.mediaPopupRect
             readonly property real barThickness: {
                 if (Config.options.bar.vertical) {
                     return Config.options.bar.sizes.width || 40;

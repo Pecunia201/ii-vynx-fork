@@ -45,6 +45,10 @@ Singleton {
     property bool localSendPopupOpen: false
     property var localSendPopupTransfer: null
 
+    // Media Popup placement (transient, non-persistent)
+    property rect mediaPopupRect: Qt.rect(0, 0, 0, 0)
+
+
     // Color Picker Popup
     property bool colorPickerPopupOpen: false
     property string colorPickerPopupColor: ""

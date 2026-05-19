@@ -21,6 +21,7 @@ DelegateChooser {
     signal openNightLightDialog
     signal openWifiDialog
     signal openDarkModeDialog
+    signal openLocalSendDialog
 
     role: "type"
 
@@ -348,6 +349,26 @@ DelegateChooser {
             cellSpacing: root.spacing
             cellSize: modelData.size
             pageIndex: root.pageIndex
+        }
+    }
+
+    DelegateChoice {
+        roleValue: "localSend"
+        AndroidLocalSendToggle {
+            required property int index
+            required property var modelData
+            buttonIndex: root.startingIndex + index
+            buttonData: modelData
+            editMode: root.editMode
+            expandedSize: modelData.size > 1
+            baseCellWidth: root.baseCellWidth
+            baseCellHeight: root.baseCellHeight
+            cellSpacing: root.spacing
+            cellSize: modelData.size
+            pageIndex: root.pageIndex
+            onOpenMenu: {
+                root.openLocalSendDialog();
+            }
         }
     }
 }
