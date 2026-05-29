@@ -62,6 +62,7 @@ RippleButton {
 
     property bool actionPanelOpen: false
     readonly property bool isNowPlaying: root.itemType === Translation.tr("Now Playing")
+    readonly property bool isBuiltinItem: (root.entry?.key?.startsWith("mock:") || root.entry?.key?.startsWith("shortcut:")) || !!root.entry?.isBuiltin
     readonly property var entryActions: entry?.actions ?? []
     readonly property bool hasCustomActions: root.entryActions.length > 0
     readonly property bool hasActions: root.hasCustomActions || root.itemType === Translation.tr("App")
@@ -99,9 +100,12 @@ RippleButton {
                 const isSystemControl = root.entry?.key?.startsWith("sys:");
                 const cmdKey = isSystemControl ? root.entry.key.slice(4) : "";
                 const isConfirming = isSystemControl && LauncherSearch.confirmKey !== cmdKey;
+                const isModeSwitch = (root.entry?.key?.startsWith("mock:") && root.entry?.key !== "mock:settings") 
+                    || (root.entry?.key?.startsWith("shortcut:") && root.entry?.key !== "shortcut:openSettings")
+                    || root.itemType === Translation.tr("Folder Alias");
 
                 root.actionPanelOpen = false;
-                if (!isConfirming) {
+                if (!isConfirming && !isModeSwitch) {
                     GlobalStates.overviewOpen = false;
                 }
                 root.itemExecute();
@@ -174,12 +178,14 @@ RippleButton {
 
     buttonRadius: 0
 
-    colBackground: (root.down || root.keyboardDown) ? Appearance.colors.colPrimaryContainerActive :
+    colBackground: root.isBuiltinItem ?
+        ((root.down || root.keyboardDown || isSelected) ? Appearance.colors.colTertiaryContainerActive : Appearance.colors.colTertiaryContainer) :
+        ((root.down || root.keyboardDown) ? Appearance.colors.colPrimaryContainerActive :
         (isSelected ? Appearance.colors.colSecondaryContainer :
-        Appearance.colors.colSurfaceContainerHigh)
-    colBackgroundHover: Appearance.colors.colSecondaryContainerHover
+        Appearance.colors.colSurfaceContainerHigh))
+    colBackgroundHover: root.isBuiltinItem ? Appearance.colors.colTertiaryContainerActive : Appearance.colors.colSecondaryContainerHover
     colRipple: Appearance.colors.colPrimaryContainerActive
-    property color colForeground: isSelected ? Appearance.colors.colOnSecondaryContainer : Appearance.m3colors.m3onSurface
+    property color colForeground: root.isBuiltinItem ? Appearance.colors.colOnTertiaryContainer : (isSelected ? Appearance.colors.colOnSecondaryContainer : Appearance.m3colors.m3onSurface)
 
     readonly property string highlightPrefix: `<u><font color="${Appearance.colors.colPrimary}">`
     readonly property string highlightSuffix: `</font></u>`
@@ -408,24 +414,35 @@ RippleButton {
                         spacing: 0
                         visible: !root.actionPanelOpen
 
-                        StyledText {
-                            font.pixelSize: Appearance.font.pixelSize.smaller
-                            color: root.isSelected ? Appearance.colors.colOnSecondaryContainer : Appearance.colors.colSubtext
-                            visible: root.itemType && root.itemType != Translation.tr("App") && !root.entry?.isMath
-                            text: root.itemType
-                            font.family: Appearance.font.family.main
-                            opacity: root.isSelected ? 1.0 : 0.7
-                            Behavior on opacity { NumberAnimation { duration: 60; easing.type: Easing.OutQuad } }
-                            Behavior on color { ColorAnimation { duration: 80 } }
-                        }
+                        RowLayout {
+                            spacing: 4
+                            visible: (root.itemType && root.itemType != Translation.tr("App") && !root.entry?.isMath) || (!!root.entry?.comment && !root.entry?.isMath)
+                            
+                            StyledText {
+                                text: root.itemType
+                                color: root.isBuiltinItem ? Appearance.colors.colOnTertiaryContainer : (root.isSelected ? Appearance.colors.colOnSecondaryContainer : Appearance.colors.colSubtext)
+                                font.pixelSize: Appearance.font.pixelSize.smaller
+                                font.family: Appearance.font.family.main
+                                opacity: (root.isBuiltinItem || root.isSelected) ? 1.0 : 0.7
+                                visible: root.itemType && root.itemType != Translation.tr("App") && !root.entry?.isMath
+                            }
 
-                        StyledText {
-                            text: root.entry?.comment ?? ""
-                            font.pixelSize: Appearance.font.pixelSize.smaller
-                            color: root.isSelected ? Appearance.colors.colOnSecondaryContainer : Appearance.colors.colSubtext
-                            font.family: Appearance.font.family.main
-                            visible: !!root.entry?.comment && !root.entry?.isMath
-                            opacity: 0.7
+                            StyledText {
+                                text: "•"
+                                color: root.isBuiltinItem ? Appearance.colors.colOnTertiaryContainer : (root.isSelected ? Appearance.colors.colOnSecondaryContainer : Appearance.colors.colSubtext)
+                                font.pixelSize: Appearance.font.pixelSize.smaller
+                                opacity: 0.5
+                                visible: (root.itemType && root.itemType != Translation.tr("App") && !root.entry?.isMath) && (!!root.entry?.comment && !root.entry?.isMath)
+                            }
+
+                            StyledText {
+                                text: root.entry?.comment ?? ""
+                                color: root.isBuiltinItem ? Appearance.colors.colOnTertiaryContainer : (root.isSelected ? Appearance.colors.colOnSecondaryContainer : Appearance.colors.colSubtext)
+                                font.pixelSize: Appearance.font.pixelSize.smaller
+                                font.family: Appearance.font.family.main
+                                visible: !!root.entry?.comment && !root.entry?.isMath
+                                opacity: 0.7
+                            }
                         }
 
                         RowLayout {
@@ -822,8 +839,11 @@ RippleButton {
         const isSystemControl = root.entry?.key?.startsWith("sys:");
         const cmdKey = isSystemControl ? root.entry.key.slice(4) : "";
         const isConfirming = isSystemControl && LauncherSearch.confirmKey !== cmdKey;
+        const isModeSwitch = (root.entry?.key?.startsWith("mock:") && root.entry?.key !== "mock:settings")
+            || (root.entry?.key?.startsWith("shortcut:") && root.entry?.key !== "shortcut:openSettings")
+            || root.itemType === Translation.tr("Folder Alias");
 
-        if (!isConfirming) {
+        if (!isConfirming && !isModeSwitch) {
             GlobalStates.overviewOpen = false;
         }
         root.itemExecute();

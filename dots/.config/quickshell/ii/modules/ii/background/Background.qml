@@ -236,7 +236,12 @@ Scope {
                 }
 
                 // Shared zoom-out state — gated on zoomOutEnabled
-                readonly property bool wallpaperZoomedOut: Config.options.background.zoomOutEnabled && (GlobalStates.cheatsheetOpen || GlobalStates.overviewOpen)
+                readonly property bool scratchpadOpen: {
+                    if (!HyprlandData.monitors)
+                        return false;
+                    return HyprlandData.monitors.some(mon => mon.specialWorkspace && mon.specialWorkspace.name !== "");
+                }
+                readonly property bool wallpaperZoomedOut: Config.options.background.zoomOutEnabled && (GlobalStates.cheatsheetOpen || GlobalStates.overviewOpen || scratchpadOpen)
 
                 // Animated clip radius — drives both the border-radius clip and tile visibility
                 property real wallpaperClipRadius: wallpaperZoomedOut ? Appearance.rounding.windowRounding : 0
@@ -503,7 +508,6 @@ Scope {
                         layer.effect: OpacityMask {
                             maskSource: centralClipMask
                         }
-
 
                         Behavior on x {
                             NumberAnimation {

@@ -5,6 +5,7 @@ import QtQuick
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
 import qs.modules.ii.bar as Bar
+import Quickshell.Services.UPower
 
 MouseArea {
     id: root
@@ -19,6 +20,10 @@ MouseArea {
     readonly property bool isLow: percentage <= Config.options.battery.low / 100
     readonly property bool isCritical: percentage <= Config.options.battery.critical / 100
     property color textColor: Appearance.colors.colOnSurface
+
+    readonly property bool effectivelyCharging: root.isCharging || root.isPluggedIn
+    readonly property bool isPowerSaving: PowerProfiles.profile === PowerProfile.PowerSaver
+    readonly property bool isPerformance: PowerProfiles.profile === PowerProfile.Performance
 
     readonly property color fillColor: {
         if (root.isCritical && !root.isCharging)
@@ -180,91 +185,99 @@ MouseArea {
 
         // 3. Classic / Default Style
         Item {
-            id: batteryContainer
+            id: batteryContainerOuter
             visible: Config.options.battery.style !== "android16" && Config.options.battery.style !== "oneui"
             Layout.alignment: Qt.AlignHCenter
-            height: 24
-            width: 12
+            height: 30
+            width: 14
 
             Item {
                 anchors.centerIn: parent
-                width: 24
-                height: 12
+                width: 30
+                height: 14
                 rotation: -90
                 antialiasing: true
 
                 Item {
-                    id: fillClipping
-                    clip: true
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    anchors.left: parent.left
+                    id: batteryContainer
+                    anchors.fill: parent
 
-                    readonly property real clampedPct: Math.max(0, Math.min(1, root.percentage))
-                    width: parent.width * clampedPct
-                    z: 0
-
-                    Rectangle {
-                        anchors.verticalCenter: parent.verticalCenter
+                    Item {
+                        id: fillClipping
+                        clip: true
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
                         anchors.left: parent.left
-                        anchors.leftMargin: 2
 
-                        height: parent.height - 4
-                        width: (24 * (20 / 24)) - 4
+                        readonly property real clampedPct: Math.max(0, Math.min(1, root.percentage))
+                        width: parent.width * clampedPct
+                        z: 0
 
-                        radius: 1
-                        color: root.fillColor
+                        Rectangle {
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.left: parent.left
+                            anchors.leftMargin: 3
 
-                        StyledText {
-                            anchors.centerIn: parent
-                            anchors.horizontalCenterOffset: 1
-                            renderType: Text.QtRendering
-                            text: Math.round(root.percentage * 100)
-                            font.pixelSize: 8
-                            font.weight: Font.Black
-                            color: "white"
+                            height: parent.height - 6
+                            width: (parent.width * (24 / 28)) - 6
+
+                            radius: 1.5
+
+                            color: {
+                                if (root.isCritical && !root.effectivelyCharging)
+                                    return "#E53935";
+                                if (root.isLow && !root.effectivelyCharging)
+                                    return "#FB8C00";
+                                if (root.effectivelyCharging)
+                                    return "#43A047";
+                                if (root.isPowerSaving)
+                                    return "#FFC917";
+                                if (root.isPerformance)
+                                    return "#42A5F5";
+                                return root.textColor;
+                            }
                         }
                     }
-                }
 
-                Image {
-                    id: batteryFrame
-                    anchors.fill: parent
-                    source: Qt.resolvedUrl("../../assets/icons/Battery.svg")
-                    sourceSize: Qt.size(24, 12)
-                    antialiasing: true
-                    visible: false
-                }
+                    CustomIcon {
+                        anchors.fill: parent
+                        source: "Battery.svg"
+                        colorize: true
+                        color: {
+                            if (root.isCritical && !root.effectivelyCharging)
+                                return Appearance.m3colors.m3error;
+                            if (root.isLow && !root.effectivelyCharging)
+                                return Appearance.m3colors.m3error;
+                            return root.textColor;
+                        }
+                        z: 1
+                    }
 
-                ColorOverlay {
-                    anchors.fill: batteryFrame
-                    source: batteryFrame
-                    color: root.frameColor
-                    z: 1
-                }
+                    MaterialSymbol {
+                        visible: root.effectivelyCharging
+                        anchors.top: parent.top
+                        anchors.topMargin: -5
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.horizontalCenterOffset: -(parent.width * (4 / 28)) / 2
+                        text: "bolt"
+                        iconSize: 17
+                        fill: 1
+                        color: Appearance.colors.colLayer0
+                        z: 2
+                    }
 
-                MaterialSymbol {
-                    visible: root.isCharging || root.isPluggedIn
-                    anchors.centerIn: parent
-                    anchors.horizontalCenterOffset: -2
-                    renderType: Text.QtRendering
-                    text: "bolt"
-                    iconSize: 14
-                    fill: 1
-                    color: Appearance.colors.colLayer0
-                    z: 2
-                }
-
-                MaterialSymbol {
-                    visible: root.isCharging || root.isPluggedIn
-                    anchors.centerIn: parent
-                    anchors.horizontalCenterOffset: -2
-                    renderType: Text.QtRendering
-                    text: "bolt"
-                    iconSize: 12
-                    fill: 1
-                    color: root.textColor
-                    z: 3
+                    MaterialSymbol {
+                        visible: root.effectivelyCharging
+                        anchors.top: parent.top
+                        anchors.topMargin: -6
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.horizontalCenterOffset: -(parent.width * (4 / 28)) / 2
+                        text: "bolt"
+                        iconSize: 16
+                        fill: 1
+                        color: root.textColor
+                        z: 3
+                    }
                 }
             }
         }

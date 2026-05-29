@@ -17,7 +17,9 @@ Item {
     property bool barVertical: Config.options.bar.vertical
     property bool barBottom: Config.options.bar.bottom
 
-    Bar.BarThemes { id: barThemes }
+    Bar.BarThemes {
+        id: barThemes
+    }
     property var activeTheme: barThemes.getTheme(Config.options.bar.expressiveColorTheme)
 
     Loader {
@@ -53,19 +55,15 @@ Item {
                     }
                 }
 
-                // INVISIBLE SPACE RESERVERS: Push windows by frameThickness
-                component FrameSpaceReserver: PanelWindow {
-                    color: "transparent"
-                    mask: Region {}
-                    exclusionMode: ExclusionMode.Exclusive
-                    visible: !monitorScope.fullscreen
-                }
-
                 Loader {
                     active: !(!barVertical && !barBottom) // topFrame is visible
                     sourceComponent: FrameSpaceReserver {
                         screen: monitorScope.modelData
-                        anchors { top: true; left: true; right: true }
+                        anchors {
+                            top: true
+                            left: true
+                            right: true
+                        }
                         implicitHeight: frameThickness
                         exclusiveZone: frameThickness
                     }
@@ -74,7 +72,11 @@ Item {
                     active: !(!barVertical && barBottom) // bottomFrame is visible
                     sourceComponent: FrameSpaceReserver {
                         screen: monitorScope.modelData
-                        anchors { bottom: true; left: true; right: true }
+                        anchors {
+                            bottom: true
+                            left: true
+                            right: true
+                        }
                         implicitHeight: frameThickness
                         exclusiveZone: frameThickness
                     }
@@ -83,7 +85,11 @@ Item {
                     active: !(barVertical && !barBottom) // leftFrame is visible
                     sourceComponent: FrameSpaceReserver {
                         screen: monitorScope.modelData
-                        anchors { left: true; top: true; bottom: true }
+                        anchors {
+                            left: true
+                            top: true
+                            bottom: true
+                        }
                         implicitWidth: frameThickness
                         exclusiveZone: frameThickness
                     }
@@ -92,7 +98,11 @@ Item {
                     active: !(barVertical && barBottom) // rightFrame is visible
                     sourceComponent: FrameSpaceReserver {
                         screen: monitorScope.modelData
-                        anchors { right: true; top: true; bottom: true }
+                        anchors {
+                            right: true
+                            top: true
+                            bottom: true
+                        }
                         implicitWidth: frameThickness
                         exclusiveZone: frameThickness
                     }
@@ -110,15 +120,15 @@ Item {
                     }
                     color: "transparent"
                     visible: !monitorScope.fullscreen
-                    
+
                     WlrLayershell.namespace: "quickshell:bar"
                     WlrLayershell.layer: WlrLayer.Overlay
                     exclusionMode: ExclusionMode.Ignore
                     mask: Region {} // Ignore pointer events so normal windows are clickable
 
                     property color baseColor: monitorScope.showBarBackground ? (Config.options.bar.expressiveColors ? activeTheme.barBackground : Appearance.colors.colLayer0) : "transparent"
-                    Behavior on baseColor { 
-                        animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(combinedFrameWindow) 
+                    Behavior on baseColor {
+                        animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(combinedFrameWindow)
                     }
 
                     Item {
@@ -230,5 +240,13 @@ Item {
                 }
             }
         }
+    }
+
+    // INVISIBLE SPACE RESERVERS: Push windows by frameThickness
+    component FrameSpaceReserver: PanelWindow {
+        color: "transparent"
+        mask: Region {}
+        exclusionMode: ExclusionMode.Exclusive
+        visible: !monitorScope.fullscreen
     }
 }

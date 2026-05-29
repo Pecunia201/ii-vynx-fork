@@ -35,17 +35,20 @@ Scope {
             readonly property list<HyprlandWorkspace> barWorkspacesForMonitor: Hyprland.workspaces.values.filter(ws => ws.monitor && ws.monitor.name === barMonitor.name)
             readonly property bool barFullscreen: barWorkspacesForMonitor.some(ws => ws.active && ws.toplevels.values.some(win => win.wayland?.fullscreen))
 
-            active: GlobalStates.barOpen && !GlobalStates.screenLocked && !barFullscreen
+            active: GlobalStates.barOpen && !GlobalStates.screenLocked
             component: PanelWindow { // Bar window
                 id: barRoot
                 screen: barLoader.modelData
+                visible: !barLoader.barFullscreen
                 property var brightnessMonitor: Brightness.getMonitorForScreen(barLoader.modelData)
 
                 property int monitorIndex: barLoader.monitorIndex
                 property bool hasActiveWindows: false
                 property bool showBarBackground: barRoot.hasActiveWindows && Config.options.bar.barBackgroundStyle === 2 || Config.options.bar.barBackgroundStyle === 1
 
-                Bar.BarThemes { id: barThemes }
+                Bar.BarThemes {
+                    id: barThemes
+                }
                 property var activeTheme: barThemes.getTheme(Config.options.bar.expressiveColorTheme)
 
                 Connections {
@@ -57,23 +60,25 @@ Scope {
 
                         const hasWindow = wsId ? HyprlandData.windowList.some(w => w.workspace.id === wsId && !w.floating) : false;
 
-                        barRoot.hasActiveWindows = hasWindow
+                        barRoot.hasActiveWindows = hasWindow;
                     }
                 }
-                
+
                 Timer {
                     id: showBarTimer
                     interval: (Config?.options.bar.autoHide.showWhenPressingSuper.delay ?? 100)
                     repeat: false
                     onTriggered: {
-                        barRoot.superShow = true
+                        barRoot.superShow = true;
                     }
                 }
                 Connections {
                     target: GlobalStates
                     function onSuperDownChanged() {
-                        if (!Config?.options.bar.autoHide.showWhenPressingSuper.enable) return;
-                        if (GlobalStates.superDown) showBarTimer.restart();
+                        if (!Config?.options.bar.autoHide.showWhenPressingSuper.enable)
+                            return;
+                        if (GlobalStates.superDown)
+                            showBarTimer.restart();
                         else {
                             showBarTimer.stop();
                             barRoot.superShow = false;
@@ -83,8 +88,7 @@ Scope {
                 property bool superShow: false
                 property bool mustShow: hoverRegion.containsMouse || superShow
                 exclusionMode: ExclusionMode.Ignore
-                exclusiveZone: (Config?.options.bar.autoHide.enable && (!mustShow || !Config?.options.bar.autoHide.pushWindows)) ? 0 :
-                    Appearance.sizes.baseVerticalBarWidth + (Config.options.bar.cornerStyle === 1 ? Appearance.sizes.hyprlandGapsOut : 0)
+                exclusiveZone: (Config?.options.bar.autoHide.enable && (!mustShow || !Config?.options.bar.autoHide.pushWindows)) ? 0 : Appearance.sizes.baseVerticalBarWidth + (Config.options.bar.cornerStyle === 1 ? Appearance.sizes.hyprlandGapsOut : 0)
                 WlrLayershell.namespace: "quickshell:verticalBar"
                 WlrLayershell.layer: WlrLayer.Overlay
                 implicitWidth: Appearance.sizes.verticalBarWidth + Appearance.rounding.screenRounding
@@ -109,7 +113,7 @@ Scope {
                     GlobalFocusGrab.removePersistent(barRoot);
                 }
 
-                MouseArea  {
+                MouseArea {
                     id: hoverRegion
                     hoverEnabled: true
                     anchors.fill: parent
@@ -239,15 +243,15 @@ Scope {
         target: "bar"
 
         function toggle(): void {
-            GlobalStates.barOpen = !GlobalStates.barOpen
+            GlobalStates.barOpen = !GlobalStates.barOpen;
         }
 
         function close(): void {
-            GlobalStates.barOpen = false
+            GlobalStates.barOpen = false;
         }
 
         function open(): void {
-            GlobalStates.barOpen = true
+            GlobalStates.barOpen = true;
         }
     }
 

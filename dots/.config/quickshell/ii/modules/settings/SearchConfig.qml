@@ -207,6 +207,7 @@ ContentPage {
         }
     }
 
+
     ContentSection {
         icon: "label"
         title: Translation.tr("App Aliases")
@@ -246,7 +247,8 @@ ContentPage {
                                 anchors.centerIn: parent
                                 iconSize: 18
                                 text: modelData.type === "app" ? "apps" : 
-                                      modelData.type === "folder" ? "folder" : "terminal"
+                                      modelData.type === "folder" ? "folder" : 
+                                      modelData.type === "builtin" ? "explore" : "terminal"
                                 color: modelData.type === "app" ? Appearance.colors.colOnPrimaryContainer : 
                                        modelData.type === "folder" ? Appearance.colors.colOnSecondaryContainer : 
                                        Appearance.colors.colOnTertiaryContainer
@@ -351,7 +353,8 @@ ContentPage {
                                 options: [
                                     { displayName: Translation.tr("App"), icon: "apps", value: "app" },
                                     { displayName: Translation.tr("Folder"), icon: "folder", value: "folder" },
-                                    { displayName: Translation.tr("Command"), icon: "terminal", value: "command" }
+                                    { displayName: Translation.tr("Command"), icon: "terminal", value: "command" },
+                                    { displayName: Translation.tr("Built-in"), icon: "explore", value: "builtin" }
                                 ]
                             }
                         }
@@ -369,7 +372,8 @@ ContentPage {
                             MaterialTextField {
                                 id: newTargetInput
                                 Layout.fillWidth: true
-                                placeholderText: Translation.tr("Target (e.g. Downloads/ii-vynx or app-id)")
+                                placeholderText: addAliasArea.selectedType === "builtin" ? Translation.tr("Select target below...") : Translation.tr("Target (e.g. Downloads/ii-vynx or app-id)")
+                                enabled: addAliasArea.selectedType !== "builtin"
                             }
 
                             RippleButtonWithIcon {
@@ -507,6 +511,81 @@ ContentPage {
                                             onClicked: {
                                                 newTargetInput.text = modelData.id;
                                                 addAliasArea.selectedType = "app";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Built-in Selection Panel
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 10
+                            visible: addAliasArea.selectedType === "builtin"
+
+                            Item { height: 2; Layout.fillWidth: true } // spacer
+
+                            StyledText {
+                                text: Translation.tr("Built-in System Targets")
+                                font.pixelSize: Appearance.font.pixelSize.small
+                                font.bold: true
+                                color: Appearance.colors.colOnSurface
+                            }
+
+                            Flow {
+                                Layout.fillWidth: true
+                                spacing: 8
+
+                                property var builtins: [
+                                    { id: "clipboard", name: Translation.tr("Clipboard"), icon: "content_paste" },
+                                    { id: "emojis", name: Translation.tr("Emoji Picker"), icon: "mood" },
+                                    { id: "math", name: Translation.tr("Calculator Mode"), icon: "calculate" },
+                                    { id: "bluetooth", name: Translation.tr("Bluetooth Manager"), icon: "bluetooth" },
+                                    { id: "settings", name: Translation.tr("Settings"), icon: "settings" }
+                                ]
+
+                                Repeater {
+                                    model: parent.builtins
+                                    delegate: Rectangle {
+                                        id: builtinChip
+                                        property bool selected: newTargetInput.text === modelData.id
+                                        color: selected ? Appearance.colors.colPrimaryContainer : (builtinMouse.hovered ? Appearance.colors.colSecondaryContainer : Appearance.colors.colSurfaceContainerHigh)
+                                        border.width: 1
+                                        border.color: selected ? Appearance.colors.colPrimary : (builtinMouse.hovered ? Appearance.colors.colOutline : Appearance.colors.colOutlineVariant)
+                                        radius: Appearance.rounding.full
+                                        width: builtinLayout.implicitWidth + 24
+                                        height: 34
+
+                                        Behavior on color { ColorAnimation { duration: 120 } }
+                                        Behavior on border.color { ColorAnimation { duration: 120 } }
+
+                                        RowLayout {
+                                            id: builtinLayout
+                                            anchors.centerIn: parent
+                                            spacing: 8
+
+                                            MaterialSymbol {
+                                                text: modelData.icon
+                                                iconSize: 18
+                                                color: builtinChip.selected ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colOnSurface
+                                            }
+
+                                            StyledText {
+                                                text: modelData.name
+                                                font.pixelSize: Appearance.font.pixelSize.small
+                                                color: builtinChip.selected ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colOnSurface
+                                                font.bold: builtinChip.selected
+                                            }
+                                        }
+
+                                        MouseArea {
+                                            id: builtinMouse
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            onClicked: {
+                                                newTargetInput.text = modelData.id;
+                                                newAliasInput.forceActiveFocus();
                                             }
                                         }
                                     }

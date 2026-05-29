@@ -99,7 +99,7 @@ def main():
             q_cats = "{" + " ".join(cats) + "}"
             q_param = f"in:inbox {q_cats}"
         else:
-            q_param = "in:inbox"
+            q_param = "in:inbox category:primary"
         query_params = f"q={urllib.parse.quote(q_param)}&maxResults={max_results}"
     elif label_id.startswith("SEARCH:"):
         q = label_id[7:]

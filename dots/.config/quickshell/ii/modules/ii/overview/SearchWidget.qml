@@ -55,6 +55,16 @@ Item {
             }
         }
     }
+
+    Connections {
+        target: LauncherSearch
+        function onRequestOpenSettings() {
+            GlobalStates.overviewOpen = false;
+            Qt.callLater(() => {
+                GlobalStates.policiesPanelOpen = true;
+            });
+        }
+    }
     implicitWidth: {
         if (root.isBluetoothMode) return (Config.options.search.clipboard.panelWidth ?? 860) + Appearance.sizes.elevationMargin * 2;
         if (root.isClipboardMode) return (Config.options.search.clipboard.panelWidth ?? 860) + Appearance.sizes.elevationMargin * 2;
@@ -101,6 +111,7 @@ Item {
         for (let i = 0; i < newLen; i++) {
             if (!newResults[i] || !currentValues[i]) return true;
             if (newResults[i].key !== currentValues[i].key) return true;
+            if (newResults[i].name !== currentValues[i].name) return true;
         }
         return false;
     }
@@ -110,25 +121,7 @@ Item {
         let list = Array.from(results);
 
         if (Config.options.search.alwaysListApps || q !== "") {
-            list = list.filter(item => item.key !== "mpris:now-playing");
-        }
-
-        if (q === "bluetooth" || q === "bt" || q === "blue") {
-            const btItem = {
-                key: "mock:bluetooth-manager",
-                id: "bluetooth-manager-launcher-mock",
-                name: Translation.tr("Bluetooth Manager"),
-                type: Translation.tr("Settings"),
-                iconType: LauncherSearchResult.IconType.Material,
-                iconName: "bluetooth",
-                shown: true,
-                verb: Translation.tr("Manage"),
-                fontType: LauncherSearchResult.FontType.Normal,
-                execute: () => {
-                    setSearchingText(Config.options.search.prefix.bluetooth);
-                }
-            };
-            list.unshift(btItem);
+            list = list.filter(item => item && item.key !== "mpris:now-playing");
         }
 
         return list.slice(0, root.typingResultLimit);

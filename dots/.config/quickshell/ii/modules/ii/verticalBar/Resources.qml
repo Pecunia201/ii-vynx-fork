@@ -19,27 +19,51 @@ MouseArea {
         Resource {
             Layout.alignment: Qt.AlignHCenter
             iconName: "memory"
+            shown: Config.options.bar.resources.alwaysShowRam
             percentage: ResourceUsage.memoryUsedPercentage
             warningThreshold: Config.options.bar.resources.memoryWarningThreshold
         }
 
         Resource {
             Layout.alignment: Qt.AlignHCenter
-            iconName: "swap_horiz"
-            percentage: ResourceUsage.swapUsedPercentage
-            warningThreshold: Config.options.bar.resources.swapWarningThreshold
-        }
-
-        Resource {
-            Layout.alignment: Qt.AlignHCenter
             iconName: "planner_review"
+            shown: Config.options.bar.resources.alwaysShowCpu
             percentage: ResourceUsage.cpuUsage
             warningThreshold: Config.options.bar.resources.cpuWarningThreshold
         }
 
+        Resource {
+            Layout.alignment: Qt.AlignHCenter
+            iconName: "thermostat"
+            shown: Config.options.bar.resources.alwaysShowCpuTemp
+            percentage: ResourceUsage.cpuTemp / 100
+        }
+
+        Resource {
+            Layout.alignment: Qt.AlignHCenter
+            iconName: "hard_drive"
+            shown: Config.options.bar.resources.alwaysShowDisk
+            percentage: ResourceUsage.diskUsedPercentage
+        }
+
+        Resource {
+            Layout.alignment: Qt.AlignHCenter
+            iconName: "swap_horiz"
+            shown: Config.options.bar.resources.alwaysShowSwap
+            percentage: ResourceUsage.swapUsedPercentage
+            warningThreshold: Config.options.bar.resources.swapWarningThreshold
+        }
     }
 
-    Bar.ResourcesPopup {
-        hoverTarget: root
+    Loader {
+        active: Config.options.bar.resources.expressivePopup
+        source: "../bar/ExpressiveResourcesPopup.qml"
+        onLoaded: item.hoverTarget = root
+    }
+
+    Loader {
+        active: !Config.options.bar.resources.expressivePopup
+        source: "../bar/ResourcesPopup.qml"
+        onLoaded: item.hoverTarget = root
     }
 }

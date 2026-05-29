@@ -23,6 +23,10 @@ Singleton {
         }
     }
 
+    // Called from SearchItem to open settings - must be a QML function (not a JS closure)
+    // so that GlobalStates is accessible in the correct QML context
+    signal requestOpenSettings()
+
     function isMathQuery(expr) {
         expr = expr.trim();
         if (expr.length === 0) return false;
@@ -148,6 +152,12 @@ Singleton {
             }
         },
         {
+            action: "settings",
+            execute: () => {
+                GlobalStates.policiesPanelOpen = !GlobalStates.policiesPanelOpen;
+            }
+        },
+        {
             action: "wipeclipboard",
             execute: () => {
                 Cliphist.wipe();
@@ -187,7 +197,7 @@ Singleton {
 
     Timer {
         id: nonAppResultsTimer
-        interval: Config.options.search.nonAppResultDelay
+        interval: Math.max(150, Config.options.search.nonAppResultDelay)
         onTriggered: {
             let expr = root.query;
             if (!root.isMathQuery(expr)) return;
@@ -200,13 +210,14 @@ Singleton {
     }
 
     // File browser: debounce browse calls to avoid Process flicker
-    property string _fileBrowserDir: ""
     Timer {
         id: fileBrowserDebounce
-        interval: 120
+        interval: 100
+        repeat: false
         onTriggered: {
-            if (root._fileBrowserDir.length > 0)
+            if (root._fileBrowserDir) {
                 fileBrowserProc.browse(root._fileBrowserDir);
+            }
         }
     }
 
@@ -222,13 +233,14 @@ Singleton {
     }
 
     onQueryChanged: {
+        fileProc.running = false;
+        fileBrowserProc.running = false;
+        mathProc.running = false; // Stop active math calculation instantly to resolve race conditions and QML coalescing
+
         if (root.query.startsWith(Config.options.search.prefix.fileSearch)) {
-            const fileExpr = root.query.slice(Config.options.search.prefix.fileSearch.length);
-            root._fileSearchExpr = fileExpr;
-            fileSearchDebounce.restart();
+            const fileSearchExpr = root.query.slice(Config.options.search.prefix.fileSearch.length);
+            fileProc.searchFiles(fileSearchExpr);
         } else {
-            fileSearchDebounce.stop();
-            root._fileSearchExpr = "";
             root.fileResults = [];
         }
 
@@ -247,6 +259,8 @@ Singleton {
 
         if (!root.isMathQuery(root.query)) {
             root.mathResult = "";
+        } else {
+            nonAppResultsTimer.restart();
         }
         root.confirmKey = "";
     }
@@ -254,15 +268,15 @@ Singleton {
 
     Process {
         id: mathProc
-        property list<string> baseCommand: ["qalc", "-t"]
         function calculateExpression(expression) {
             mathProc.running = false;
-            mathProc.command = baseCommand.concat(expression);
+            mathProc.command = ["qalc", "-t", expression];
             mathProc.running = true;
         }
-        stdout: SplitParser {
-            onRead: data => {
-                root.mathResult = data;
+        stdout: StdioCollector {
+            id: mathCollector
+            onStreamFinished: {
+                root.mathResult = mathCollector.text.trim();
             }
         }
     }
@@ -277,14 +291,14 @@ Singleton {
             fileProc.running = true;
         }
         stdout: StdioCollector {
+            id: fileCollector
             onStreamFinished: {
-                const rawResult = this.text
+                const rawResult = fileCollector.text
                 const result = rawResult.split('\n')
                 result.pop() // deleting the last empty line
                 root.fileResults = result
             }
         }
-
     }
 
     // ========== File Browser (directory navigation) ==========
@@ -376,6 +390,7 @@ Singleton {
     property list<var> results: {
         let _ = root._mprisTrigger;
         let _apps = AppSearch.list; // Establish reactive binding to application list!
+        let _mathResult = root.mathResult; // Establish reactive binding to math result - REQUIRED for re-evaluation when qalc returns
         // Search results are handled here
 
         ////////////////// MPRIS (empty query) //////////////////
@@ -627,16 +642,16 @@ Singleton {
 
 
         ////////////////// Init ///////////////////
-        nonAppResultsTimer.restart();
+        // NOTE: nonAppResultsTimer is restarted in onQueryChanged, not here
         const mathResultObject = resultComp.createObject(null, {
-            key: "math:result",
-            name: root.mathResult || Translation.tr("Evaluate math..."),
+            key: "math:" + (_mathResult || "pending"),
+            name: _mathResult || Translation.tr("Evaluate math..."),
             verb: Translation.tr("Copy"),
             type: Translation.tr("Math result"),
             fontType: LauncherSearchResult.FontType.Monospace,
             iconName: 'calculate',
             iconType: LauncherSearchResult.IconType.Material,
-            isMath: Config.options.search.enableMathPreview && !!root.mathResult,
+            isMath: Config.options.search.enableMathPreview && !!_mathResult,
             execute: () => {
                 Quickshell.clipboardText = root.mathResult;
             }
@@ -796,6 +811,51 @@ Singleton {
                             Quickshell.execDetached(["bash", "-c", entry.target]);
                         }
                     });
+                } else if (entry.type === "builtin") {
+                    let verb = Translation.tr("Open");
+                    let icon = "explore";
+                    let typeName = Translation.tr("Mode");
+                    let name = entry.target;
+                    let execFunc = () => {};
+                    
+                    if (entry.target === "clipboard") {
+                        icon = "content_paste";
+                        name = Translation.tr("Clipboard");
+                        execFunc = () => { root.query = Config.options.search.prefix.clipboard; };
+                    } else if (entry.target === "emojis") {
+                        icon = "mood";
+                        name = Translation.tr("Emojis");
+                        execFunc = () => { root.query = Config.options.search.prefix.emojis; };
+                    } else if (entry.target === "math") {
+                        icon = "calculate";
+                        name = Translation.tr("Calculator");
+                        execFunc = () => { root.query = Config.options.search.prefix.math; };
+                    } else if (entry.target === "settings") {
+                        icon = "settings";
+                        name = Translation.tr("Dotfiles Settings");
+                        typeName = Translation.tr("Settings");
+                        execFunc = () => { 
+                            GlobalStates.policiesPanelOpen = true;
+                            GlobalStates.overviewOpen = false;
+                        };
+                    } else if (entry.target === "bluetooth") {
+                        icon = "bluetooth";
+                        name = Translation.tr("Bluetooth Manager");
+                        typeName = Translation.tr("Settings");
+                        execFunc = () => { root.query = Config.options.search.prefix.bluetooth; };
+                    }
+
+                    return resultComp.createObject(null, {
+                        key: "mock:" + entry.target,
+                        name: name,
+                        iconName: icon,
+                        iconType: LauncherSearchResult.IconType.Material,
+                        verb: verb,
+                        type: typeName,
+                        comment: Translation.tr("Alias: ") + entry.alias,
+                        isBuiltin: true,
+                        execute: execFunc
+                    });
                 }
             }
             return null;
@@ -872,27 +932,31 @@ Singleton {
         ////////// Module shortcuts ////////////
         // Typing module names shows a shortcut to switch to that mode
         const moduleShortcuts = [
-            { names: ["clipboard", "clip", "paste", "copiar"], prefix: Config.options.search.prefix.clipboard, label: Translation.tr("Clipboard"), icon: "content_paste" },
-            { names: ["emoji", "emojis", "emoticon"], prefix: Config.options.search.prefix.emojis, label: Translation.tr("Emojis"), icon: "mood" },
-            { names: ["window", "windows", "janela"], prefix: Config.options.search.prefix.windowSearch, label: Translation.tr("Window Search"), icon: "select_window" },
-            { names: ["file", "files", "arquivo", "browse"], prefix: Config.options.search.prefix.fileBrowser, label: Translation.tr("File Browser"), icon: "folder_open" },
-            { names: ["math", "calc", "calculator", "calcular"], prefix: Config.options.search.prefix.math, label: Translation.tr("Calculator"), icon: "calculate" },
-            { names: ["command", "commands", "terminal", "shell"], prefix: Config.options.search.prefix.shellCommand, label: Translation.tr("Shell Command"), icon: "terminal" },
+            { names: ["clipboard", "clip", "paste", "copiar"], prefix: Config.options.search.prefix.clipboard, label: Translation.tr("Clipboard"), icon: "content_paste", isBuiltin: true },
+            { names: ["emoji", "emojis", "emoticon"], prefix: Config.options.search.prefix.emojis, label: Translation.tr("Emojis"), icon: "mood", isBuiltin: true },
+            { names: ["window", "windows", "janela"], prefix: Config.options.search.prefix.windowSearch, label: Translation.tr("Window Search"), icon: "select_window", isBuiltin: true },
+            { names: ["file", "files", "arquivo", "browse"], prefix: Config.options.search.prefix.fileBrowser, label: Translation.tr("File Browser"), icon: "folder_open", isBuiltin: true },
+            { names: ["math", "calc", "calculator", "calcular"], prefix: Config.options.search.prefix.math, label: Translation.tr("Calculator"), icon: "calculate", isBuiltin: true },
+            { names: ["command", "commands", "terminal", "shell"], prefix: Config.options.search.prefix.shellCommand, label: Translation.tr("Shell Command"), icon: "terminal", isBuiltin: true },
+            { names: ["settings", "configurar", "config", "dotfiles"], prefix: "__openSettings", label: Translation.tr("Dotfiles Settings"), icon: "settings", isBuiltin: true },
+            { names: ["bluetooth"], prefix: Config.options.search.prefix.bluetooth, label: Translation.tr("Bluetooth Manager"), icon: "bluetooth", isBuiltin: true },
         ];
 
         const queryLower = root.query.toLowerCase();
         for (const mod of moduleShortcuts) {
             if (mod.names.some(n => n.startsWith(queryLower) && queryLower.length >= 2)) {
+                const execFn = mod.prefix === "__openSettings"
+                    ? () => { root.requestOpenSettings(); }
+                    : () => { root.query = mod.prefix; };
                 result.push(resultComp.createObject(null, {
-                    key: "shortcut:" + mod.label,
+                    key: mod.prefix === "__openSettings" ? "shortcut:openSettings" : ("shortcut:" + mod.label),
                     name: mod.label,
-                    type: Translation.tr("Shortcut"),
-                    verb: Translation.tr("Open"),
+                    type: Translation.tr("Built-in"),
+                    verb: Translation.tr("Switch"),
                     iconName: mod.icon,
                     iconType: LauncherSearchResult.IconType.Material,
-                    execute: () => {
-                        root.query = mod.prefix;
-                    }
+                    isBuiltin: true,
+                    execute: execFn
                 }));
             }
         }
@@ -972,6 +1036,7 @@ Singleton {
             genericName: properties.genericName || "",
             keywords: properties.keywords || [],
             isMath: !!properties.isMath,
+            isBuiltin: !!properties.isBuiltin,
             category: properties.category || properties.type || ""
         };
     }
