@@ -377,6 +377,7 @@ Singleton {
                 property bool floatStyleShadow: true // Show shadow behind bar when cornerStyle == 1 (Float)
                 property int barGroupStyle: 1 // 0: Pills | 1: Island (opaque) | 2: Transparent (or maybe line-separated in the future)
                 property string topLeftIcon: "spark" // Options: "distro" or any icon name in ~/.config/quickshell/ii/assets/icons
+                property bool useMaterialSymbolForTopLeftIcon: false
                 property int barBackgroundStyle: 1 // 0: Transparent | 1: Visible | 2: Adaptive
                 property bool expressiveColors: false
                 property string expressiveColorTheme: "content"
@@ -410,6 +411,7 @@ Singleton {
                     property int swapWarningThreshold: 85
                     property int cpuWarningThreshold: 90
                     property bool expressivePopup: true
+                    property bool showDocker: false
                 }
 
                 property JsonObject sports: JsonObject {
@@ -426,7 +428,7 @@ Singleton {
                     property bool showUEL: false
                     property bool showWC: true
                     property bool showWWC: false
-                    property var monitoredLeagues: [
+                    property list<var> monitoredLeagues: [
                         {
                             "sport": "soccer",
                             "league": "bra.1",
@@ -463,6 +465,8 @@ Singleton {
                     property int maxCardsPopup: 4
                     property int showBeforeHours: 12
                     property int showAfterMinutes: 180
+                    property string activeGameId: ""
+                    property list<var> customOrder: []
                 }
                 property list<string> screenList: [] // List of names, like "eDP-1", find out with 'hyprctl monitors' command
 
@@ -603,6 +607,7 @@ Singleton {
                     property bool compactPopups: false
                     property bool enableColorPickerPopup: true
                     property bool enableBluetoothConnectionPopup: true
+                    property bool enableKeyboardLayoutTransitionPopup: true
                 }
                 property string bluetoothDevicesLayout: "expressive" // Options: classic, expressive
                 property JsonObject sizes: JsonObject {
@@ -997,6 +1002,7 @@ Singleton {
 
             property JsonObject screenRecord: JsonObject {
                 property string savePath: Directories.videos.replace("file://", "") // strip "file://"
+                property string service: "wf-recorder"
             }
 
             property JsonObject screenSnip: JsonObject {
