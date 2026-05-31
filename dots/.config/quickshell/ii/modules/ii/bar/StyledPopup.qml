@@ -2,7 +2,6 @@ import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
@@ -17,12 +16,11 @@ LazyLoader {
     property bool animateHeight: true
     property bool stickyHover: false
 
-    property bool isClickedOpen: false
     property bool _popupHovered: false
     property bool _stickyActive: false
     property bool _targetHovered: hoverTarget ? hoverTarget.containsMouse : false
 
-    active: Config.options.bar.tooltips.clickToShow ? isClickedOpen : (stickyHover ? _stickyActive : (hoverTarget && hoverTarget.containsMouse))
+    active: stickyHover ? _stickyActive : (hoverTarget && hoverTarget.containsMouse)
 
     // I have NO FUCKING IDEA why we cant use a normal timer here
     // Because if we do, we FUCKING cannot reference the timer from anywhere
@@ -48,21 +46,12 @@ LazyLoader {
         }
     }
 
-    on_TargetHoveredChanged: {
-        if (Config.options.bar.tooltips.clickToShow) {
-            if (_targetHovered) {
-                isClickedOpen = !isClickedOpen;
-            }
-        } else {
-            _evaluateStickyState();
-        }
-    }
+    on_TargetHoveredChanged: _evaluateStickyState()
 
     onActiveChanged: {
         if (!active) {
             _popupHovered = false;
             _timers.grace.stop();
-            isClickedOpen = false;
         }
     }
 
@@ -70,37 +59,8 @@ LazyLoader {
         id: popupWindow
         color: "transparent"
 
-        Component.onCompleted: {
-            if (Config.options.bar.tooltips.clickToShow) {
-                GlobalFocusGrab.addDismissable(popupWindow);
-            }
-        }
-        Component.onDestruction: {
-            if (Config.options.bar.tooltips.clickToShow) {
-                GlobalFocusGrab.removeDismissable(popupWindow);
-            }
-        }
-
-        Connections {
-            target: GlobalFocusGrab
-            function onDismissed() {
-                if (Config.options.bar.tooltips.clickToShow) {
-                    root.isClickedOpen = false;
-                }
-            }
-        }
-
         readonly property real screenWidth: popupWindow.screen?.width ?? 0
         readonly property real screenHeight: popupWindow.screen?.height ?? 0
-
-        // Max usable popup height: screen minus bar + elevation margins + small padding
-        readonly property real maxPopupHeight: {
-            const barSize = Config.options.bar.vertical
-                ? 0
-                : Appearance.sizes.barHeight;
-            const avail = screenHeight - barSize - Appearance.sizes.elevationMargin * 2 - 16;
-            return Math.max(120, avail);
-        }
 
         anchors.left: !Config.options.bar.vertical || (Config.options.bar.vertical && !Config.options.bar.bottom)
         anchors.right: Config.options.bar.vertical && Config.options.bar.bottom
@@ -108,7 +68,7 @@ LazyLoader {
         anchors.bottom: !Config.options.bar.vertical && Config.options.bar.bottom
 
         implicitWidth: popupBackground.targetWidth + Appearance.sizes.elevationMargin * 2 + root.popupBackgroundMargin
-        implicitHeight: popupBackground.height + Appearance.sizes.elevationMargin * 2 + root.popupBackgroundMargin
+        implicitHeight: popupBackground.targetHeight + Appearance.sizes.elevationMargin * 2 + root.popupBackgroundMargin
 
         mask: Region {
             item: popupBackground
@@ -138,8 +98,7 @@ LazyLoader {
                 if (!root.hoverTarget || !root.QsWindow)
                     return 0;
                 var targetPos = root.QsWindow.mapFromItem(root.hoverTarget, 0, 0);
-                var stableHeight = (heroHeight > 0 ? heroHeight : 200) + Appearance.sizes.elevationMargin * 2;
-                var centeredY = targetPos.y + (root.hoverTarget.height - stableHeight) / 2;
+                var centeredY = targetPos.y + (root.hoverTarget.height - popupWindow.implicitHeight) / 2;
                 var minY = 0;
                 var maxY = screenHeight - popupWindow.implicitHeight;
                 return Math.max(minY, Math.min(maxY, centeredY));
@@ -196,8 +155,18 @@ LazyLoader {
             // Delayed enable to avoid opening animation transition glitch
             property bool _heightReady: false
 
+            Timer {
+                id: heightCommit
+                interval: 32
+                repeat: false
+                onTriggered: popupBackground._commitHeight = popupBackground.targetHeight
+            }
+
             onTargetHeightChanged: {
-                _commitHeight = targetHeight;
+                if (popupWindow.animProgress >= 1.0 && popupBackground._heightReady)
+                    heightCommit.restart();
+                else
+                    _commitHeight = targetHeight;
             }
 
             Component.onCompleted: {
@@ -208,10 +177,10 @@ LazyLoader {
             }
 
             Behavior on _commitHeight {
-                enabled: popupBackground._heightReady && root.animateHeight
-                NumberAnimation {
-                    duration: 220
-                    easing.type: Easing.OutCubic
+                enabled: popupBackground._heightReady
+                SmoothedAnimation {
+                    duration: 200
+                    easing: Easing.OutQuad
                 }
             }
 
@@ -232,53 +201,27 @@ LazyLoader {
 
             width: targetWidth
             height: {
-                const maxH = popupWindow.maxPopupHeight + margin * 2;
-                let h;
                 if (!root.animate || !root.contentItem || !heroItem || targetHeight <= heroHeight + margin * 2)
-                    h = _commitHeight;
-                else
-                    h = (heroHeight + margin * 2) + (_commitHeight - (heroHeight + margin * 2)) * popupWindow.animProgress;
-                return Math.min(h, maxH);
+                    return _commitHeight;
+                return (heroHeight + margin * 2) + (_commitHeight - (heroHeight + margin * 2)) * popupWindow.animProgress;
             }
 
             color: Config.options.appearance.transparency.popups ? Appearance.colors.colLayer0 : Appearance.m3colors.m3surfaceContainer
             radius: root.popupRadius
 
-            Flickable {
+            Item {
                 id: contentContainer
                 anchors.fill: parent
                 anchors.margins: popupBackground.margin
                 clip: true
 
-                contentWidth: width
-                contentHeight: root.contentItem?.implicitHeight ?? height
-                flickableDirection: Flickable.VerticalFlick
-                boundsBehavior: Flickable.StopAtBounds
-
-                // Disable interaction and lock scroll position during open animation
-                // to prevent trembling and scrollbar flash
-                interactive: popupWindow.animProgress >= 1.0
-                contentY: interactive ? contentY : 0
-
-                ScrollBar.vertical: ScrollBar {
-                    id: popupScrollBar
-                    // Only show after animation completes AND content actually overflows
-                    policy: popupWindow.animProgress >= 1.0 && contentContainer.contentHeight > contentContainer.height
-                        ? ScrollBar.AlwaysOn
-                        : ScrollBar.AlwaysOff
-                    minimumSize: 0.1
-                }
-
                 Component.onCompleted: {
                     if (root.contentItem) {
-                        // Parent to Flickable's contentItem but anchor width to
-                        // contentContainer itself (not contentItem) to avoid
-                        // circular binding with popupBackground.targetWidth
-                        root.contentItem.parent = contentContainer.contentItem;
+                        root.contentItem.parent = contentContainer;
                         root.contentItem.anchors.centerIn = undefined;
-                        root.contentItem.anchors.top = contentContainer.contentItem.top;
-                        root.contentItem.anchors.left = contentContainer.contentItem.left;
-                        root.contentItem.width = Qt.binding(() => contentContainer.width);
+                        root.contentItem.anchors.top = contentContainer.top;
+                        root.contentItem.anchors.left = contentContainer.left;
+                        root.contentItem.anchors.right = contentContainer.right;
 
                         for (let i = 0; i < root.contentItem.children.length; i++) {
                             let child = root.contentItem.children[i];
@@ -307,9 +250,7 @@ LazyLoader {
                 id: popupHoverHandler
                 onHoveredChanged: {
                     root._popupHovered = hovered;
-                    if (!Config.options.bar.tooltips.clickToShow) {
-                        root._evaluateStickyState();
-                    }
+                    root._evaluateStickyState();
                 }
             }
 
