@@ -568,7 +568,7 @@ Scope {
                             height: Config.options.background.zoomOutStyle !== 1 ? wallpaperPlanes.wallpaperH : parent.height
 
                             visible: opacity > 0 && !bgRoot.wallpaperIsVideo
-                            opacity: (status === Image.Ready && !bgRoot.wallpaperIsVideo) ? 1 : 0
+                            opacity: (wallpaper.status === Image.Ready && !bgRoot.wallpaperIsVideo) ? 1 : 0
 
                             property int chunkSize: Config?.options.bar.workspaces.shown ?? 10
                             property int lower: Math.floor(bgRoot.firstWorkspaceId / chunkSize) * chunkSize
@@ -818,7 +818,7 @@ Scope {
                 active: false
                 asynchronous: true
                 sourceComponent: MediaMode {}
-                opacity: status === Loader.Ready ? 1 : 0
+                opacity: mediaModeLoader.status === Loader.Ready ? 1 : 0
                 Behavior on opacity {
                     animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
                 }

@@ -69,9 +69,9 @@ Rectangle {
                 {
                     show: showVolume,
                     icon: "volume_up",
-                    getVal: () => Audio.sink?.audio?.volume ?? 0,
+                    getVal: () => (Audio.sink && Audio.sink.audio) ? Audio.sink.audio.volume : 0,
                     setVal: v => {
-                        if (Audio.sink?.audio) {
+                        if (Audio.sink && Audio.sink.audio) {
                             Audio.sink.audio.volume = v;
                         }
                     }
@@ -79,9 +79,9 @@ Rectangle {
                 {
                     show: showMic,
                     icon: "mic",
-                    getVal: () => Audio.source?.audio?.volume ?? 0,
+                    getVal: () => (Audio.source && Audio.source.audio) ? Audio.source.audio.volume : 0,
                     setVal: v => {
-                        if (Audio.source?.audio) {
+                        if (Audio.source && Audio.source.audio) {
                             Audio.source.audio.volume = v;
                         }
                     }

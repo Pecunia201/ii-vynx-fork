@@ -962,11 +962,12 @@ ContentPage {
         }
 
         ContentSubsection {
-            title: Translation.tr("Sliders")
+            title: Translation.tr("Fixed Sliders")
+            tooltip: Translation.tr("Fixes sliders at the top of the Quick Toggles panel across all pages")
 
             ConfigSwitch {
                 buttonIcon: "check"
-                text: Translation.tr("Enable")
+                text: Translation.tr("Enable fixed sliders")
                 checked: Config.options.sidebar.quickSliders.enable
                 onCheckedChanged: {
                     Config.options.sidebar.quickSliders.enable = checked;
@@ -1010,15 +1011,6 @@ ContentPage {
                 checked: Config.options.sidebar.quickSliders.showMic
                 onCheckedChanged: {
                     Config.options.sidebar.quickSliders.showMic = checked;
-                }
-            }
-            ConfigSwitch {
-                buttonIcon: "vertical_align_center"
-                enabled: Config.options.sidebar.quickSliders.enable
-                text: Translation.tr("Vertical layout")
-                checked: Config.options.sidebar.quickSliders.vertical
-                onCheckedChanged: {
-                    Config.options.sidebar.quickSliders.vertical = checked;
                 }
             }
         }

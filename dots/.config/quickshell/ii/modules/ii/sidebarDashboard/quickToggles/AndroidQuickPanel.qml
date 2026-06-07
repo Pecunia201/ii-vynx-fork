@@ -26,7 +26,7 @@ AbstractQuickPanel {
     readonly property real baseCellHeight: 56
 
     // Toggles config
-    readonly property list<string> availableToggleTypes: ["network", "bluetooth", "idleInhibitor", "easyEffects", "nightLight", "darkMode", "cloudflareWarp", "gameMode", "screenSnip", "colorPicker", "onScreenKeyboard", "mic", "audio", "notifications", "powerProfile", "musicRecognition", "antiFlashbang", "soundcoreAnc", "localSend"]
+    readonly property list<string> availableToggleTypes: ["network", "bluetooth", "idleInhibitor", "easyEffects", "nightLight", "darkMode", "cloudflareWarp", "gameMode", "screenSnip", "colorPicker", "onScreenKeyboard", "mic", "audio", "notifications", "powerProfile", "musicRecognition", "antiFlashbang", "soundcoreAnc", "localSend", "mediaWidget", "volumeSlider", "micSlider", "brightnessSlider", "gammaSlider"]
     readonly property int columns: Config.options.sidebar.quickToggles.android.columns
 
     // Pages data — reads from Config.
@@ -83,27 +83,45 @@ AbstractQuickPanel {
             };
         });
     }
-    readonly property list<var> unusedToggleRows: toggleRowsForList(unusedToggles)
-
-    function toggleRowsForList(togglesList) {
-        var rows = [];
-        var row = [];
-        var totalSize = 0;
+    function getGridRowsNeeded(togglesList) {
+        var grid = [];
+        var rowsNeeded = 0;
         for (var i = 0; i < togglesList.length; i++) {
-            if (!togglesList[i])
-                continue;
-            if (totalSize + togglesList[i].size > columns) {
-                rows.push(row);
-                row = [];
-                totalSize = 0;
+            if (!togglesList[i]) continue;
+            var t = togglesList[i];
+            var w = t.sizeW ?? t.size ?? 1;
+            var h = t.sizeH ?? 1;
+            w = Math.min(w, columns); // sanitize
+            
+            var startX = -1, startY = -1;
+            for (var y = 0; startX === -1; y++) {
+                for (var x = 0; x <= columns - w; x++) {
+                    var conflict = false;
+                    for (var dy = 0; dy < h; dy++) {
+                        for (var dx = 0; dx < w; dx++) {
+                            if (grid[y+dy] && grid[y+dy][x+dx]) {
+                                conflict = true;
+                                break;
+                            }
+                        }
+                        if (conflict) break;
+                    }
+                    if (!conflict) {
+                        startX = x;
+                        startY = y;
+                        break;
+                    }
+                }
             }
-            row.push(togglesList[i]);
-            totalSize += togglesList[i].size;
+            for (var dY = 0; dY < h; dY++) {
+                if (!grid[startY+dY]) grid[startY+dY] = [];
+                for (var dX = 0; dX < w; dX++) {
+                    grid[startY+dY][startX+dX] = true;
+                }
+            }
+            rowsNeeded = Math.max(rowsNeeded, startY + h);
         }
-        if (row.length > 0) {
-            rows.push(row);
-        }
-        return rows;
+        return rowsNeeded;
     }
 
     // Calculate height for a specific page
@@ -111,19 +129,15 @@ AbstractQuickPanel {
         if (pageIndex < 0 || pageIndex >= pages.length)
             return baseCellHeight;
         var pageToggles = pages[pageIndex] || [];
-        var toggleRows = toggleRowsForList(pageToggles);
-        return Math.max(baseCellHeight, toggleRows.length * (baseCellHeight + spacing) - spacing);
+        var rows = getGridRowsNeeded(pageToggles);
+        return Math.max(baseCellHeight, rows * (baseCellHeight + spacing) - spacing);
     }
 
     // Dynamic height based on current page + page indicators
-    readonly property real currentContentHeight: pageHeight(currentPage)
+    readonly property real currentContentHeight: pageHeight(currentPage) + (editMode ? 14 : 0)
     readonly property real pageIndicatorHeight: pages.length > 1 ? 20 : 0
 
-    implicitHeight: {
-        if (editMode)
-            return contentItem.implicitHeight + root.padding * 2;
-        return currentContentHeight + pageIndicatorHeight + root.padding * 2;
-    }
+    implicitHeight: contentItem.implicitHeight + root.padding * 2
     Behavior on implicitHeight {
         animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
     }
@@ -176,6 +190,46 @@ AbstractQuickPanel {
         }
         spacing: 8
 
+        Column {
+            id: fixedSlidersColumn
+            width: parent.width
+            spacing: root.spacing
+            
+            Repeater {
+                id: fixedSlidersRepeater
+                model: ScriptModel {
+                    values: {
+                        var list = [];
+                        const cfg = Config.options.sidebar.quickSliders;
+                        if (cfg.enable) {
+                            if (cfg.showBrightness) list.push({type: "brightnessSlider", sizeW: root.columns, sizeH: 1, size: root.columns});
+                            if (cfg.showGamma) list.push({type: "gammaSlider", sizeW: root.columns, sizeH: 1, size: root.columns});
+                            if (cfg.showVolume) list.push({type: "volumeSlider", sizeW: root.columns, sizeH: 1, size: root.columns});
+                            if (cfg.showMic) list.push({type: "micSlider", sizeW: root.columns, sizeH: 1, size: root.columns});
+                        }
+                        return list;
+                    }
+                    objectProp: "type"
+                }
+                delegate: AndroidToggleDelegateChooser {
+                    editMode: false // Force false so they can't be dragged
+                    baseCellWidth: root.baseCellWidth
+                    baseCellHeight: root.baseCellHeight
+                    spacing: root.spacing
+                    isUnused: false
+                    pageIndex: -1
+                    
+                    onOpenAudioOutputDialog: root.openAudioOutputDialog()
+                    onOpenAudioInputDialog: root.openAudioInputDialog()
+                    onOpenBluetoothDialog: root.openBluetoothDialog()
+                    onOpenNightLightDialog: root.openNightLightDialog()
+                    onOpenWifiDialog: root.openWifiDialog()
+                    onOpenDarkModeDialog: root.openDarkModeDialog()
+                    onOpenLocalSendDialog: root.openLocalSendDialog()
+                }
+            }
+        }
+
         // Horizontal paging container
         Item {
             id: flickableContainer
@@ -211,10 +265,6 @@ AbstractQuickPanel {
                     anchors.fill: parent
                     acceptedButtons: Qt.NoButton
                     onWheel: function (wheelEvent) {
-                        if (root.editMode) {
-                            wheelEvent.accepted = false;
-                            return;
-                        }
                         if (Math.abs(wheelEvent.angleDelta.x) > Math.abs(wheelEvent.angleDelta.y)) {
                             // Horizontal scroll
                             if (wheelEvent.angleDelta.x < 0 && root.currentPage < root.pages.length - 1) {
@@ -260,58 +310,41 @@ AbstractQuickPanel {
                             // Show only current page content as visible when current
                             property bool isCurrent: root.currentPage === index
                             property list<var> pageToggles: root.pages[index] || []
-                            property list<var> pageToggleRows: root.toggleRowsForList(pageToggles)
 
-                            Column {
-                                id: pageContentColumn
+                            GridLayout {
+                                id: pageContentGrid
                                 anchors {
                                     left: parent.left
                                     right: parent.right
                                     top: parent.top
                                 }
-                                spacing: root.spacing
+                                columns: root.columns
+                                columnSpacing: root.spacing
+                                rowSpacing: root.spacing
                                 objectName: "pageContent_" + pageContainer.index
 
                                 Repeater {
-                                    id: rowRepeater
+                                    id: gridRepeater
                                     model: ScriptModel {
-                                        values: Array(pageContainer.pageToggleRows.length)
+                                        values: pageContainer.pageToggles
+                                        objectProp: "type"
                                     }
-                                    delegate: ButtonGroup {
-                                        id: toggleRow
-                                        required property int index
-                                        property var modelData: pageContainer.pageToggleRows[index]
-                                        property int startingIndex: {
-                                            const rows = pageContainer.pageToggleRows;
-                                            let sum = 0;
-                                            for (let i = 0; i < index; i++) {
-                                                sum += rows[i].length;
-                                            }
-                                            return sum;
-                                        }
-                                        spacing: root.spacing
+                                    delegate: AndroidToggleDelegateChooser {
 
-                                        Repeater {
-                                            model: ScriptModel {
-                                                values: toggleRow?.modelData ?? []
-                                                objectProp: "type"
-                                            }
-                                            delegate: AndroidToggleDelegateChooser {
-                                                startingIndex: toggleRow.startingIndex
-                                                editMode: root.editMode
-                                                baseCellWidth: root.baseCellWidth
-                                                baseCellHeight: root.baseCellHeight
-                                                spacing: root.spacing
-                                                pageIndex: pageContainer.index
-                                                onOpenAudioOutputDialog: root.openAudioOutputDialog()
-                                                onOpenAudioInputDialog: root.openAudioInputDialog()
-                                                onOpenBluetoothDialog: root.openBluetoothDialog()
-                                                onOpenNightLightDialog: root.openNightLightDialog()
-                                                onOpenWifiDialog: root.openWifiDialog()
-                                                onOpenDarkModeDialog: root.openDarkModeDialog()
-                                                onOpenLocalSendDialog: root.openLocalSendDialog()
-                                            }
-                                        }
+                                        editMode: root.editMode
+                                        baseCellWidth: root.baseCellWidth
+                                        baseCellHeight: root.baseCellHeight
+                                        spacing: root.spacing
+                                        isUnused: false
+                                        pageIndex: pageContainer.index
+
+                                        onOpenAudioOutputDialog: root.openAudioOutputDialog()
+                                        onOpenAudioInputDialog: root.openAudioInputDialog()
+                                        onOpenBluetoothDialog: root.openBluetoothDialog()
+                                        onOpenNightLightDialog: root.openNightLightDialog()
+                                        onOpenWifiDialog: root.openWifiDialog()
+                                        onOpenDarkModeDialog: root.openDarkModeDialog()
+                                        onOpenLocalSendDialog: root.openLocalSendDialog()
                                     }
                                 }
                             }
@@ -500,34 +533,25 @@ AbstractQuickPanel {
         // Unused toggles (edit mode)
         FadeLoader {
             shown: root.editMode
-            sourceComponent: Column {
+            sourceComponent: GridLayout {
                 id: unusedRows
-                spacing: root.spacing
+                columns: root.columns
+                columnSpacing: root.spacing
+                rowSpacing: root.spacing
 
                 Repeater {
                     model: ScriptModel {
-                        values: Array(root.unusedToggleRows.length)
+                        values: root.unusedToggles
+                        objectProp: "type"
                     }
-                    delegate: ButtonGroup {
-                        id: unusedToggleRow
-                        required property int index
-                        property var modelData: root.unusedToggleRows[index]
-                        spacing: root.spacing
+                    delegate: AndroidToggleDelegateChooser {
 
-                        Repeater {
-                            model: ScriptModel {
-                                values: unusedToggleRow?.modelData ?? []
-                                objectProp: "type"
-                            }
-                            delegate: AndroidToggleDelegateChooser {
-                                startingIndex: -1
-                                editMode: root.editMode
-                                baseCellWidth: root.baseCellWidth
-                                baseCellHeight: root.baseCellHeight
-                                spacing: root.spacing
-                                pageIndex: root.currentPage
-                            }
-                        }
+                        editMode: root.editMode
+                        baseCellWidth: root.baseCellWidth
+                        baseCellHeight: root.baseCellHeight
+                        spacing: root.spacing
+                        isUnused: true
+                        pageIndex: root.currentPage
                     }
                 }
             }

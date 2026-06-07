@@ -90,20 +90,6 @@ Item {
                 Layout.bottomMargin: 0
             }
 
-            Loader {
-                id: slidersLoader
-                Layout.fillWidth: true
-                visible: active
-                active: {
-                    const configQuickSliders = Config.options.sidebar.quickSliders;
-                    if (!configQuickSliders.enable)
-                        return false;
-                    if (!configQuickSliders.showMic && !configQuickSliders.showVolume && !configQuickSliders.showBrightness)
-                        return false;
-                    return true;
-                }
-                sourceComponent: QuickSliders {}
-            }
 
             LoaderedQuickPanelImplementation {
                 id: classicQuickPanelLoader
@@ -124,6 +110,12 @@ Item {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+                visible: !root.editMode
+            }
+
+            Item {
+                Layout.fillHeight: true
+                visible: root.editMode
             }
 
             BottomWidgetGroup {
@@ -365,7 +357,7 @@ Item {
                 buttonIcon: "edit"
                 onClicked: root.editMode = !root.editMode
                 StyledToolTip {
-                    text: Translation.tr("Edit quick toggles") + (root.editMode ? Translation.tr("\nLMB to enable/disable\nRMB to toggle size\nScroll to swap position") : "")
+                    text: Translation.tr("Edit quick toggles") + (root.editMode ? Translation.tr("\nLMB to enable/disable\nDrag handles to resize\nDrag icon to swap position") : "")
                 }
             }
             QuickToggleButton {

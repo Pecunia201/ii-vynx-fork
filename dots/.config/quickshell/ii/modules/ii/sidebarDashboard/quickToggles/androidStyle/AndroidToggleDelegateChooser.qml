@@ -13,8 +13,8 @@ DelegateChooser {
     required property real baseCellWidth
     required property real baseCellHeight
     required property real spacing
-    required property int startingIndex
     property int pageIndex: 0
+    property bool isUnused: false
     signal openAudioOutputDialog
     signal openAudioInputDialog
     signal openBluetoothDialog
@@ -30,10 +30,10 @@ DelegateChooser {
         AndroidAntiFlashbangToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -50,10 +50,10 @@ DelegateChooser {
         AndroidAudioToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -70,10 +70,10 @@ DelegateChooser {
         AndroidBluetoothToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -90,10 +90,10 @@ DelegateChooser {
         AndroidCloudflareWarpToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -107,10 +107,10 @@ DelegateChooser {
         AndroidColorPickerToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -124,10 +124,10 @@ DelegateChooser {
         AndroidDarkModeToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -144,10 +144,10 @@ DelegateChooser {
         AndroidEasyEffectsToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -161,10 +161,10 @@ DelegateChooser {
         AndroidGameModeToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -178,10 +178,10 @@ DelegateChooser {
         AndroidIdleInhibitorToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -195,10 +195,10 @@ DelegateChooser {
         AndroidMicToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -215,10 +215,10 @@ DelegateChooser {
         AndroidMusicRecognition {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -232,10 +232,10 @@ DelegateChooser {
         AndroidNetworkToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -252,10 +252,10 @@ DelegateChooser {
         AndroidNightLightToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -272,10 +272,10 @@ DelegateChooser {
         AndroidNotificationToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -289,10 +289,10 @@ DelegateChooser {
         AndroidOnScreenKeyboardToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -306,10 +306,10 @@ DelegateChooser {
         AndroidPowerProfileToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -323,10 +323,10 @@ DelegateChooser {
         AndroidScreenSnipToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -340,10 +340,10 @@ DelegateChooser {
         AndroidSoundcoreAncToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -357,10 +357,10 @@ DelegateChooser {
         AndroidLocalSendToggle {
             required property int index
             required property var modelData
-            buttonIndex: root.startingIndex + index
+            buttonIndex: index
+            isUnused: root.isUnused
             buttonData: modelData
             editMode: root.editMode
-            expandedSize: modelData.size > 1
             baseCellWidth: root.baseCellWidth
             baseCellHeight: root.baseCellHeight
             cellSpacing: root.spacing
@@ -369,6 +369,96 @@ DelegateChooser {
             onOpenMenu: {
                 root.openLocalSendDialog();
             }
+        }
+    }
+
+    DelegateChoice {
+        roleValue: "mediaWidget"
+        AndroidMediaWidgetToggle {
+            required property int index
+            required property var modelData
+            buttonIndex: index
+            isUnused: root.isUnused
+            buttonData: modelData
+            editMode: root.editMode
+            baseCellWidth: root.baseCellWidth
+            baseCellHeight: root.baseCellHeight
+            cellSpacing: root.spacing
+            cellSize: modelData.size
+            pageIndex: root.pageIndex
+        }
+    }
+    DelegateChoice {
+        roleValue: "volumeSlider"
+        AndroidVolumeSliderToggle {
+            required property int index
+            required property var modelData
+            buttonIndex: index
+            isUnused: root.isUnused
+            buttonData: modelData
+            editMode: root.editMode
+            baseCellWidth: root.baseCellWidth
+            baseCellHeight: root.baseCellHeight
+            cellSpacing: root.spacing
+            cellSize: modelData.size
+            pageIndex: root.pageIndex
+            onOpenMenu: {
+                root.openAudioOutputDialog();
+            }
+        }
+    }
+
+    DelegateChoice {
+        roleValue: "micSlider"
+        AndroidMicSliderToggle {
+            required property int index
+            required property var modelData
+            buttonIndex: index
+            isUnused: root.isUnused
+            buttonData: modelData
+            editMode: root.editMode
+            baseCellWidth: root.baseCellWidth
+            baseCellHeight: root.baseCellHeight
+            cellSpacing: root.spacing
+            cellSize: modelData.size
+            pageIndex: root.pageIndex
+            onOpenMenu: {
+                root.openAudioInputDialog();
+            }
+        }
+    }
+
+    DelegateChoice {
+        roleValue: "brightnessSlider"
+        AndroidBrightnessSliderToggle {
+            required property int index
+            required property var modelData
+            buttonIndex: index
+            isUnused: root.isUnused
+            buttonData: modelData
+            editMode: root.editMode
+            baseCellWidth: root.baseCellWidth
+            baseCellHeight: root.baseCellHeight
+            cellSpacing: root.spacing
+            cellSize: modelData.size
+            pageIndex: root.pageIndex
+        }
+    }
+
+    DelegateChoice {
+        roleValue: "gammaSlider"
+        AndroidGammaSliderToggle {
+            required property int index
+            required property var modelData
+            buttonIndex: index
+            isUnused: root.isUnused
+            buttonData: modelData
+            editMode: root.editMode
+            baseCellWidth: root.baseCellWidth
+            baseCellHeight: root.baseCellHeight
+            cellSpacing: root.spacing
+            cellSize: modelData.size
+            pageIndex: root.pageIndex
         }
     }
 }
