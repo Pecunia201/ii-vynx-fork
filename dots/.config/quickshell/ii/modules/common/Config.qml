@@ -69,7 +69,8 @@ Singleton {
         blockWrites: root.blockWrites
         onFileChanged: fileReloadTimer.restart()
         onAdapterUpdated: {
-            if (root.ready) fileWriteTimer.restart();
+            if (root.ready)
+                fileWriteTimer.restart();
         }
         onLoaded: root.ready = true
         onLoadFailed: error => {
@@ -147,6 +148,7 @@ Singleton {
                     property string monospace: "JetBrains Mono NF"
                     property string reading: "Readex Pro"
                     property string expressive: "Space Grotesk"
+                    property bool roundnessFull: false
                 }
                 property JsonObject transparency: JsonObject {
                     property bool enable: false
@@ -156,6 +158,9 @@ Singleton {
                     property real contentTransparency: 0.38
                 }
                 property int blurSize: 10
+                property int borderWidth: 2
+                property int gapsIn: 4
+                property int gapsOut: 5
                 property real ignoreAlpha: 0.4
                 property JsonObject wallpaperTheming: JsonObject {
                     property bool enableAppsAndShell: true
@@ -309,6 +314,8 @@ Singleton {
                 property string thumbnailPath: ""
                 property bool hideWhenFullscreen: true
                 property int zoomOutStyle: 0 // 0: Blurred Backing | 1: Mirrored Plane
+                property bool blurWhenWindowsOpen: false
+                property int blurWhenWindowsOpenRadius: 80
                 property JsonObject parallax: JsonObject {
                     property bool vertical: false
                     property bool autoVertical: false
@@ -337,6 +344,7 @@ Singleton {
             property JsonObject bar: JsonObject {
                 property bool borderless: false
                 property JsonObject styles: JsonObject {
+                    property string activeWindow: "default"
                     property string clock: "expressive" // default, expressive
                     property string media: "expressive"
                     property string notification: "default"
@@ -626,6 +634,7 @@ Singleton {
 
             property JsonObject battery: JsonObject {
                 property string style: "android16"
+                property string showPercentage: "off"
                 property int low: 20
                 property int critical: 5
                 property int full: 101
@@ -721,6 +730,16 @@ Singleton {
                     property string defaultTargetLanguage: "auto"
                     property string defaultSourceLanguage: "auto"
                 }
+            }
+
+            property JsonObject userProfile: JsonObject {
+                property string imageStyle: "initial" // "initial", "expressive", "custom"
+                property string imagePath: Directories.home + "/.config/quickshell/ii/assets/profile.png"
+                property string customName: ""
+                property string customGreeting: ""
+                property string customBio: ""
+                property string avatarShape: "Cookie9Sided"
+                property string avatarColor: "primary"
             }
 
             property JsonObject launcher: JsonObject {
@@ -852,6 +871,7 @@ Singleton {
                 }
                 property JsonObject annotation: JsonObject {
                     property bool useSatty: false
+                    property bool enableInlineEditor: false
                 }
             }
 
@@ -1122,7 +1142,7 @@ Singleton {
                     property bool leftAlignApps: false
                 }
                 property JsonObject actionCenter: JsonObject {
-                    property list<string> toggles: ["network", "bluetooth", "easyEffects", "powerProfile", "idleInhibitor", "nightLight", "darkMode", "antiFlashbang", "cloudflareWarp", "mic", "musicRecognition", "notifications", "onScreenKeyboard", "gameMode", "screenSnip", "colorPicker"]
+                    property list<string> toggles: ["network", "bluetooth", "easyEffects", "powerProfile", "idleInhibitor", "nightLight", "darkMode", "antiFlashbang", "cloudflareWarp", "mic", "musicRecognition", "notifications", "onScreenKeyboard", "gameMode", "screenSnip", "colorPicker", "videoEditor"]
                 }
                 property JsonObject calendar: JsonObject {
                     property bool force2CharDayOfWeek: true
